@@ -1,0 +1,6 @@
+messages:
+  prefix: "<white>[<gradient:red:yellow>CommandChain<white>] "
+  reload: "<green>Reload complete!"
+  execute: "<gray>Executing command -> <green><command>"
+  execute-all-header: "<green>Chaining commands:"
+  execute-all-command: "   <gray>▙▄▄▄▄▄ <reset><green>/<command>"
