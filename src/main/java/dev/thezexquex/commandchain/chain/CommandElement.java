@@ -18,7 +18,7 @@ public class CommandElement {
     }
 
     public void execute(CommandSender sender) {
-        commandChainPlugin.sendMessage(sender, NodePath.path(
+        commandChainPlugin.getMessenger().sendMessage(sender, NodePath.path(
                 "messages", "execute"), TagResolver.resolver("command",
                 Tag.inserting(Component.text(command)))
         );

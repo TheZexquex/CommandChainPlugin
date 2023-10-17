@@ -27,6 +27,6 @@ public class ReloadCommand extends CommandBase {
         var sender = commandContext.getSender();
 
         commandChainPlugin.reload();
-        commandChainPlugin.sendMessage(sender, NodePath.path("messages", "reload"));
+        commandChainPlugin.getMessenger().sendMessage(sender, NodePath.path("messages", "reload"));
     }
 }

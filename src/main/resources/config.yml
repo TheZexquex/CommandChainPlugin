@@ -3,4 +3,11 @@ messages:
   reload: "<green>Reload complete!"
   execute: "<gray>Executing command -> <green><command>"
   execute-all-header: "<green>Chaining commands:"
-  execute-all-command: "   <gray>▙▄▄▄▄▄ <reset><green>/<command>"
+  execute-all-command: "   <gray>▙▄ <reset><green>/<command>"
+
+config:
+  general:
+    max-commands: 20
+
+  experimental:
+    use-flag-for-delay: false

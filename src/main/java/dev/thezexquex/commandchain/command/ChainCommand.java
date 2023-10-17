@@ -1,5 +1,6 @@
 package dev.thezexquex.commandchain.command;
 
+import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.arguments.standard.IntegerArgument;
 import cloud.commandframework.arguments.standard.StringArgument;
@@ -18,21 +19,28 @@ import java.util.*;
 
 public class ChainCommand extends CommandBase {
 
-    private static final int MAX_CHAINED_COMMANDS = 20;
-
     public ChainCommand(CommandChainPlugin commandChainPlugin) {
         super(commandChainPlugin);
     }
 
     public void register(CommandManager<CommandSender> commandManager) {
-        var commandBuilder = commandManager.commandBuilder("chain")
-                .permission("commandchain.command.chain")
-                .flag(commandManager.flagBuilder("delay"))
-                .argument(IntegerArgument.of("delay"))
-                .argument(StringArgument.of("cmd1", StringArgument.StringMode.QUOTED))
-                .argument(StringArgument.of("cmd2", StringArgument.StringMode.QUOTED));
 
-        for (int i = 3; i <= MAX_CHAINED_COMMANDS; i++) {
+        Command.Builder<CommandSender> commandBuilder;
+        if (commandChainPlugin.getConfiguration().useFlagForDelay()) {
+            commandBuilder = commandManager.commandBuilder("chain")
+                    .permission("commandchain.command.chain")
+                    .flag(commandManager.flagBuilder("delay").withArgument(IntegerArgument.of("delay")))
+                    .argument(StringArgument.of("cmd1", StringArgument.StringMode.QUOTED))
+                    .argument(StringArgument.of("cmd2", StringArgument.StringMode.QUOTED));
+        } else {
+            commandBuilder = commandManager.commandBuilder("chain")
+                    .permission("commandchain.command.chain")
+                    .argument(IntegerArgument.of("delay"))
+                    .argument(StringArgument.of("cmd1", StringArgument.StringMode.QUOTED))
+                    .argument(StringArgument.of("cmd2", StringArgument.StringMode.QUOTED));
+        }
+
+        for (int i = 3; i <= commandChainPlugin.getConfiguration().maxCommands(); i++) {
             commandBuilder = commandBuilder.argument(StringArgument.optional("cmd" + i, StringArgument.StringMode.QUOTED));
         }
 
@@ -44,19 +52,23 @@ public class ChainCommand extends CommandBase {
     private void handleChain(@NonNull CommandContext<CommandSender> commandContext) {
         var sender = commandContext.getSender();
 
-        var delayInTicks = (int) commandContext.get("delay");
+
+        var delayInTicks = (int) (commandChainPlugin.getConfiguration().useFlagForDelay() ?
+                (commandContext.flags().getValue("delay").isPresent() ?
+                        commandContext.flags().getValue("delay").get() : 0)
+                : commandContext.get("delay"));
 
         var cmds = new ArrayList<String>();
-        for (int i = 1; i <= MAX_CHAINED_COMMANDS; i++) {
+        for (int i = 1; i <= commandChainPlugin.getConfiguration().maxCommands(); i++) {
             if (!commandContext.contains("cmd" + i)) {
                 break;
             }
             cmds.add(commandContext.get("cmd" + i));
         }
 
-        commandChainPlugin.sendMessage(sender, NodePath.path("messages", "execute-all-header"));
+        commandChainPlugin.getMessenger().sendMessage(sender, NodePath.path("messages", "execute-all-header"));
         cmds.forEach(cmd ->
-                commandChainPlugin.sendMessage(
+                commandChainPlugin.getMessenger().sendMessage(
                 sender, NodePath.path("messages", "execute-all-command"),
                         TagResolver.resolver("command", Tag.inserting(Component.text(cmd))
                 ))
